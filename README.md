@@ -42,7 +42,7 @@ but again the question arises what if the whole node fails ? we solve this by st
     }
     
 
-UPSERT:
+## UPSERT:
 
 only runs if the doc exists else a new upsert doc is created:
 
