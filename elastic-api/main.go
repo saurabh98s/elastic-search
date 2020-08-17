@@ -54,4 +54,6 @@ func main() {
 	}
 
 	fmt.Println("[Elastic][InsertProduct]Insertion Successful")
+	term:="APPLE"
+	elastic.NewMultiMatchQuery(term).Type("phase_prefix")
 }
