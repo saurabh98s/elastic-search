@@ -1,54 +1,57 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/olivere/elastic/v7"
 )
 
 
-	type ElasticResponse struct {
-		Name        string `json:"name"`
-		ClusterName string `json:"cluster_name"`
-		ClusterUUID string `json:"cluster_uuid"`
-		Version     struct {
-			Number                           string    `json:"number"`
-			BuildFlavor                      string    `json:"build_flavor"`
-			BuildType                        string    `json:"build_type"`
-			BuildHash                        string    `json:"build_hash"`
-			BuildDate                        time.Time `json:"build_date"`
-			BuildSnapshot                    bool      `json:"build_snapshot"`
-			LuceneVersion                    string    `json:"lucene_version"`
-			MinimumWireCompatibilityVersion  string    `json:"minimum_wire_compatibility_version"`
-			MinimumIndexCompatibilityVersion string    `json:"minimum_index_compatibility_version"`
-		} `json:"version"`
-		Tagline string `json:"tagline"`
-	}
+type Student struct {
+	Name         string  `json:"name"`
+	Age          int64   `json:"age"`
+	AverageScore float64 `json:"average_score"`
+}
 
+func GetESClient() (*elastic.Client, error) {
+
+	client, err :=  elastic.NewClient(elastic.SetURL("http://localhost:9200"),
+		elastic.SetSniff(false),
+		elastic.SetHealthcheck(false))
+
+	fmt.Println("ES initialized...")
+
+	return client, err
+
+}
 
 func main() {
-	resp,err:=http.Get("http://localhost:9200/")
+	ctx := context.Background()
+	esclient, err := GetESClient()
 	if err != nil {
-		panic(err.Error())
+		fmt.Println("Error initializing : ", err)
+		panic("Client fail ")
 	}
-	defer resp.Body.Close()
-	
-	
-	var result ElasticResponse
-	err=json.NewDecoder(resp.Body).Decode(&result)
+
+	//creating student object
+	newStudent := Student{
+		Name:         "Gopher doe",
+		Age:          10,
+		AverageScore: 99.9,
+	}
+
+	dataJSON, err := json.Marshal(newStudent)
+	js := string(dataJSON)
+	_, err = esclient.Index().
+		Index("students").
+		BodyJson(js).
+		Do(ctx)
+
 	if err != nil {
 		panic(err)
 	}
 
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-
-	logrus.Println(result)
-
-	fmt.Println(result)
-
-	
-
+	fmt.Println("[Elastic][InsertProduct]Insertion Successful")
 }
