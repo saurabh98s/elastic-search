@@ -8,13 +8,14 @@ import (
 	"github.com/olivere/elastic/v7"
 )
 
-
+// Student handles the student type index
 type Student struct {
 	Name         string  `json:"name"`
 	Age          int64   `json:"age"`
 	AverageScore float64 `json:"average_score"`
 }
 
+//GetESClient check if elastic search is running or not
 func GetESClient() (*elastic.Client, error) {
 
 	client, err :=  elastic.NewClient(elastic.SetURL("http://localhost:9200"),
@@ -28,6 +29,7 @@ func GetESClient() (*elastic.Client, error) {
 }
 
 func main() {
+	
 	ctx := context.Background()
 	esclient, err := GetESClient()
 	if err != nil {
@@ -41,14 +43,12 @@ func main() {
 		Age:          10,
 		AverageScore: 99.9,
 	}
-
+	// marshalling to []byte
 	dataJSON, err := json.Marshal(newStudent)
+	// []byte to string
 	js := string(dataJSON)
-	_, err = esclient.Index().
-		Index("students").
-		BodyJson(js).
-		Do(ctx)
-
+	// CLient.index.index("indexname").serializeToJson.Do(ctx)
+	_, err = esclient.Index().Index("students").BodyJson(js).Do(ctx)
 	if err != nil {
 		panic(err)
 	}
